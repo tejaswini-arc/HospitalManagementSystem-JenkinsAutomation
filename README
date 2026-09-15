@@ -1,0 +1,94 @@
+workflow for jenkins automation
+
+Developer
+   │
+   │ git push
+   ▼
+GitHub
+   │
+   │ Webhook
+   ▼
+Jenkins
+   │
+   ├── Checkout
+   ├── Maven Build
+   ├── Docker Build
+   ├── Trivy Security Gate
+   └── Docker Push
+
+
+Arch
+
+
+
+Developer
+   │
+   │ git push
+   ▼
+GitHub
+   │
+   │ Webhook
+   ▼
+ngrok public URL
+   │
+   ▼
+localhost:9090
+   │
+   ▼
+Jenkins
+   │
+   ▼
+Jenkinsfile
+   │
+   ├── Maven Build
+   ├── Docker Build
+   ├── Trivy Security Gate
+   └── Docker Push
+
+
+CI/CD Webhook Setup — steps
+1. Add Jenkinsfile to GitHub repo
+    -   Keep it at the root of the project.
+    -   It contains: Maven Build → Docker Build → Trivy Scan → Docker Push.
+2. Configure Jenkins
+    -   Job → Configure → Pipeline
+    -   Select Pipeline script from SCM
+    -   SCM: Git
+        Repository: your GitHub repo
+        Branch: */master
+    -   Script Path: Jenkinsfile
+3. Enable Webhook Trigger
+    -   Jenkins → Build Triggers
+    -   Select GitHub hook trigger for GITScm polling
+    -   Don't enable Poll SCM.
+
+4. Expose local Jenkins
+
+    -   Since Jenkins is running on localhost:9090, GitHub cannot directly access it.
+    -   Run:    ngrok http 9090
+    -   Example:    https://abc123.ngrok-free.app
+
+5. Configure GitHub Webhook
+
+    GitHub → Repository → Settings → Webhooks → Add webhook
+    Payload URL:    https://abc123.ngrok-free.app/github-webhook/
+    Content type: application/json
+    Select Just the push event
+    Enable Active
+
+6. Test
+
+                    Developer
+                        ↓ git push
+                    GitHub
+                        ↓ Webhook
+                      ngrok
+                        ↓
+                    Jenkins
+                        ↓
+                    Maven → Docker Build → Trivy → Docker Push
+* Important
+
+Jenkinsfile stays in GitHub.
+Developers don't manually send the Jenkinsfile with every push.
+Jenkins reads the Jenkinsfile from the commit that triggered the build.
