@@ -7,7 +7,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'master',
-                    url: 'https://github.com/tejaswini-arc/HospitalManagementSystem-Devops-Automation.git'
+                    url: 'https://github.com/tejaswini-arc/HospitalManagementSystem-JenkinsAutomation.git'
             }
         }
 
