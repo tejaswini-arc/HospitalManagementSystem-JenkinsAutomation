@@ -78,3 +78,27 @@ which checks approximately every minute.
 Important point about "Jenkinsfile every time"
 
 You do not need to separately commit the Jenkinsfile every time.
+
+
+-------------------------------------------------------------------------------------------
+
+Backend change → build + Trivy scan + Docker Hub push backend only
+Frontend change → build + Trivy scan + Docker Hub push frontend only
+Both changed → build/scan/push both
+
+============================================================================
+
+Only frontend changed
+HospitalManagement-Frontend/...
+
+Jenkins:
+
+Frontend Docker Build
+Frontend Trivy
+Frontend Docker Push
+
+Backend stages → Skipped
+
+only reason we need change detection inside the Jenkinsfile is to decide whether to build Backend, Frontend, or both.
+
+we use Jenkins' previous-build/change information rather than HEAD~1, especially if multiple commits can arrive between polling cycles.
