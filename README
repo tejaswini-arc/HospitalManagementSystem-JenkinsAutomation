@@ -1,94 +1,80 @@
-workflow for jenkins automation
-
-Developer
-   │
-   │ git push
-   ▼
-GitHub
-   │
-   │ Webhook
-   ▼
-Jenkins
-   │
-   ├── Checkout
-   ├── Maven Build
-   ├── Docker Build
-   ├── Trivy Security Gate
-   └── Docker Push
-
-
-Arch
-
+Jenkins SCM Polling Approach followed for the current setup
 
 
 Developer
-   │
-   │ git push
-   ▼
+   ↓
+git commit
+   ↓
+   git push
 GitHub
-   │
-   │ Webhook
-   ▼
-ngrok public URL
-   │
-   ▼
-localhost:9090
-   │
-   ▼
-Jenkins
-   │
-   ▼
+        ↓
+GitHub gets new commit
+   ↓
+Jenkins SCM Polling
+   ↓
+Jenkins detects new commit
+   ↓
+Reads Jenkinsfile from repo
+   ↓
+Maven Build
+   ↓
+Docker Build
+   ↓
+Trivy Security Gate
+   ↓
+Docker Push
+
+
+-----------------------------------------------------------
+
+git push
+   ↓
+GitHub
+   ↓
+Jenkins checks repository
+   ↓
+Detects new commit
+   ↓
+Build starts
+
+Steps:
+
+
+1. Keep Jenkinsfile in your GitHub repo
+
+HospitalManagementSystem-Devops-Automation/
+│
+├── Jenkinsfile
+├── HospitalManagement-Backend/
+└── HospitalManagement-Frontend/
+
+2. Jenkins → Configure → Pipeline
+
+Use:
+
+Definition: Pipeline script from SCM
+SCM: Git
+Repository:
+https://github.com/tejaswini-arc/HospitalManagementSystem-Devops-Automation.git
+Branch:
+*/master
+Script Path:
 Jenkinsfile
-   │
-   ├── Maven Build
-   ├── Docker Build
-   ├── Trivy Security Gate
-   └── Docker Push
 
+3. Build Triggers
 
-CI/CD Webhook Setup — steps
-1. Add Jenkinsfile to GitHub repo
-    -   Keep it at the root of the project.
-    -   It contains: Maven Build → Docker Build → Trivy Scan → Docker Push.
-2. Configure Jenkins
-    -   Job → Configure → Pipeline
-    -   Select Pipeline script from SCM
-    -   SCM: Git
-        Repository: your GitHub repo
-        Branch: */master
-    -   Script Path: Jenkinsfile
-3. Enable Webhook Trigger
-    -   Jenkins → Build Triggers
-    -   Select GitHub hook trigger for GITScm polling
-    -   Don't enable Poll SCM.
+Select:
 
-4. Expose local Jenkins
+☑ Poll SCM
 
-    -   Since Jenkins is running on localhost:9090, GitHub cannot directly access it.
-    -   Run:    ngrok http 9090
-    -   Example:    https://abc123.ngrok-free.app
+Set the schedule to:
+H/5 * * * *
+This means Jenkins checks GitHub approximately every 5 minutes.
 
-5. Configure GitHub Webhook
+For faster testing, you can temporarily use:
+H/1 * * * *
+which checks approximately every minute.
 
-    GitHub → Repository → Settings → Webhooks → Add webhook
-    Payload URL:    https://abc123.ngrok-free.app/github-webhook/
-    Content type: application/json
-    Select Just the push event
-    Enable Active
+Important point about "Jenkinsfile every time"
 
-6. Test
-
-                    Developer
-                        ↓ git push
-                    GitHub
-                        ↓ Webhook
-                      ngrok
-                        ↓
-                    Jenkins
-                        ↓
-                    Maven → Docker Build → Trivy → Docker Push
-* Important
-
-Jenkinsfile stays in GitHub.
-Developers don't manually send the Jenkinsfile with every push.
-Jenkins reads the Jenkinsfile from the commit that triggered the build.
+You do not need to separately commit the Jenkinsfile every time.
